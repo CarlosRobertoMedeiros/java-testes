@@ -1,6 +1,7 @@
 package br.com.roberto.servicos;
 
 import java.util.Date;
+import java.util.List;
 
 import br.com.roberto.entidades.Filme;
 import br.com.roberto.entidades.Locacao;
@@ -11,26 +12,33 @@ import br.com.roberto.utils.DataUtils;
 
 public class LocacaoService {
 
-	public Locacao alugarFilme(Usuario usuario, Filme filme) throws FilmesSemEstoqueException, LocadoraException {
+	public Locacao alugarFilme(Usuario usuario, List<Filme> filmes) throws FilmesSemEstoqueException, LocadoraException {
 		
-		if (filme.getEstoque()==0) {
-			throw new FilmesSemEstoqueException();
-		}
 		
 		if(usuario==null) {
 			throw new LocadoraException("Usuário Vazio");
 		}
 		
-		if(filme==null) {
+		if(filmes==null || filmes.isEmpty()) {
 			throw new LocadoraException("Filme Vazio");
 		}
 		
+		for(Filme filme : filmes) {
+			if (filme.getEstoque()==0) {
+				throw new FilmesSemEstoqueException();
+			}
+		}
 		
 		Locacao locacao = new Locacao();
-		locacao.setFilme(filme);
+		locacao.setFilmes(filmes);
 		locacao.setUsuario(usuario);
 		locacao.setDataLocacao(new Date());
-		locacao.setValor(filme.getPrecoLocacao());
+		
+		Double valorTotal = 0d;
+		for(Filme filme : filmes) {
+			valorTotal+= filme.getPrecoLocacao();
+		}
+		locacao.setValor(valorTotal);
 
 		// Entrega no dia seguinte
 		Date dataEntrega = new Date();
